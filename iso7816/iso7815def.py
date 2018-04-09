@@ -69,6 +69,21 @@ DSC_ERROR = {
 DSC_SW_ERROR = {
     0x6200: "No information given (NV-Ram not changed)",
     0x6201: "NV-Ram not changed 1",
+    0x6281: "Part of returned data may be corrupted",
+    0x6282: "End of file/record reached before reading Le bytes",
+    0x6283: "Selected file invalidated",
+    0x6284: "Selected file is not valid. FCI not formated according to ISO',
+    0x6285: "No input data available from a sensor on the card. No Purse Engine enslaved for R3bc",
+    0x62A2: "Wrong R-MAC",
+    0x62A4: "Card locked (during reset( ))",
+    0x62F1: "Wrong C-MAC",
+    0x62F3: "Internal reset",
+    0x62F5: "Default agent locked",
+    0x62F7: "Cardholder locked",
+    0x62F8: "Basement is current agent",
+    0x62F9: "CALC Key Set not unblocked",
+  
     0x6E00: "Class not supported"
+  
 }
 
