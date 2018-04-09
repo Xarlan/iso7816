@@ -5,6 +5,8 @@
 
 MAX_ATR_SIZE            = 33                # Maximum ATR size
 
+SCARD_UNPOWER_CARD      = 0x0002            # Power down on close
+
 SCARD_SCOPE_USER        = 0x0000            # Scope in user space
 SCARD_SCOPE_TERMINAL    = 0x0001            # Scope in terminal
 SCARD_SCOPE_SYSTEM      = 0x0002            # Scope in system
@@ -63,4 +65,10 @@ DSC_ERROR = {
     0x80100066: "The smart card is not responding to a reset",
     0x80100067: "Power has been removed from the smart card, so that further communication is not possible"
             }
+
+DSC_SW_ERROR = {
+    0x6200: "No information given (NV-Ram not changed)",
+    0x6201: "NV-Ram not changed 1",
+    0x6E00: "Class not supported"
+}
 
