@@ -14,3 +14,25 @@ The main idea - write direct wrapper in Python for "libpcsclite.so" which used t
 
 [pyResMan](https://github.com/JavaCardOS/pyResMan)
 
+## How to use
+* $sudo apt install pcsc-tools
+* run pcsc deamon
+
+Example:
+
+import iso7816
+
+my_card = iso7816.Iso7816()
+
+reader = my_card.get_readers()
+
+my_card.connect_to_reader(reader)
+
+print my_card.get_atr()
+
+rx, sw1, sw2 my_card.transmit('80 90 1B 13')
+
+or
+
+rx, sw1, sw2 my_card.transmit([0x80, 0x90, 0x1B, 0x13])
+
