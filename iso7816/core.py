@@ -16,8 +16,9 @@ class Iso7816Exception(Exception):
     The base class for iso7816 exception
     """
 
-    def __init__(self, msg='Iso7816 Exception'):
+    def __init__(self, msg='Iso7816 Exception', error=None):
         self.msg = msg
+        self.error = error & 0xFFFFFFFF
 
 
 class ScardIORequest(ctypes.Structure):
@@ -73,7 +74,7 @@ class Iso7816():
 
     def __del__(self):
         rv = self.pcsc_lib.SCardDisconnect(self.hwnd_reader, iso7816def.SCARD_UNPOWER_CARD)
-        # self.__check_rv(rv)
+
 
     def __check_rv(self, rv, fun=" "):
         """
@@ -252,3 +253,94 @@ class Iso7816():
 
         return sc_response, sw1, sw2
 
+    def analyze_atr(self, raw_atr=None):
+
+        if raw_atr is None:
+            raw_atr = self.get_atr()
+            # print "ATR: " + " ".join("{:02X}".format(i) for i in raw_atr) + '\n'
+
+        if isinstance(raw_atr, str):
+            raw_atr = raw_atr.split(" ")
+            raw_atr = [int(x, 16) for x in raw_atr]
+
+        print "Analyze ATR: " + " ".join("{:02X}".format(i) for i in raw_atr) + '\n'
+
+        if (raw_atr[0] != 0x3B) and (raw_atr[0] != 0x3F):
+            raise Iso7816Exception("This is not ATR")
+
+        atr_len = len(raw_atr)
+
+
+        atr = {}
+        atr_header = []
+        atr["TS"] = raw_atr[0]
+        atr_header.append('TS')
+        hist_bytes = raw_atr[1] & 0xF
+
+        ptr = 1
+        index = 1
+
+        TDi = raw_atr[1]
+        atr['T0'] = TDi
+        atr_header.append('T0')
+
+        while (ptr + hist_bytes) < atr_len:
+
+            # TAi presence
+            if TDi & 0x10:
+                ptr += 1
+                atr["TA%d" % index] = raw_atr[ptr]
+                atr_header.append('TA%d' % index)
+
+            # TBi presence
+            if TDi & 0x20:
+                ptr += 1
+                atr["TB%d" % index] = raw_atr[ptr]
+                atr_header.append('TB%d' % index)
+
+            # TCi presence
+            if TDi & 0x40:
+                ptr += 1
+                atr["TC%d" % index] = raw_atr[ptr]
+                atr_header.append('TC%d' % index)
+
+            if TDi & 0x80:
+                ptr += 1
+                atr["TD%d" % index] = raw_atr[ptr]
+                atr_header.append('TD%d' % index)
+
+                index += 1
+                TDi = raw_atr[ptr]
+            else:
+                break
+
+        atr['hb'] = raw_atr[ptr+1:ptr + hist_bytes+2]
+        atr_header.append('hb')
+
+        print sorted(atr)
+
+        for header in atr_header:
+
+            if header == 'TS':
+                print "TS  = {:>5X} -> {:}".format(atr['TS'], iso7816def.DSC_ATR['TS'][atr['TS']])
+
+            elif header == 'T0':
+                print "T0  = {:>5X}".format(atr['T0'])
+
+            elif header == 'TA1':
+                print "TA1 = {:>5X} ->".format(atr['TA1'])
+                print "{:>16}Fi = {}".format(' ', (iso7816def.DSC_ATR['FI'][(atr['TA1'] & 0xF0) >> 4]))
+                print "{:>16}Di = {}".format(' ', (iso7816def.DSC_ATR['DI'][atr['TA1'] & 0xF]))
+
+            elif header == 'TB1':
+                print "TB1 = {:>5X} ->".format(atr['TB1'])
+                print "{:>16}II = {}".format(' ', (atr['TB1'] & 0x60) >> 6)
+                print "{:>16}Pi = {}".format(' ', atr['TB1'] & 0x1F)
+
+            elif header == 'TC1':
+                print "TC1 = {:>5X} -> Extra guard time".format(atr['TC1'])
+
+            elif header == 'hb':
+                print "Historical bytes: {}".format(" ".join('{:02X}'.format(i) for i in atr['hb']))
+
+        return atr

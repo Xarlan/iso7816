@@ -87,3 +87,49 @@ DSC_SW_ERROR = {
   
 }
 
+DSC_ATR = {
+        'TS': {
+            0x3B: 'Direct Convention',
+            0x3F: 'Inverse Convention'
+              },
+
+        # clock rate conversion (Fi)
+        'FI': {
+            0x0: 'internal clk',
+            0x1: 372,
+            0x2: 558,
+            0x3: 744,
+            0x4: 1116,
+            0x5: 1488,
+            0x6: 1860,
+            0x7: 'RFU',
+            0x8: 'RFU',
+            0x9: 512,
+            0xA: 768,
+            0xB: 1024,
+            0xC: 1536,
+            0xD: 2048,
+            0xE: 'RFU',
+            0xF: 'RFU'
+        },
+
+        # baud rate adjustment (Di)
+        'DI': {
+            0x0: 'RFU',
+            0x1: 1,
+            0x2: 2,
+            0x3: 4,
+            0x4: 8,
+            0x5: 16,
+            0x6: 32,
+            0x7: 64,
+            0x8: 12,
+            0x9: 20,
+            0xA: 'RFU',
+            0xB: 'RFU',
+            0xC: 'RFU',
+            0xD: 'RFU',
+            0xE: 'RFU',
+            0xF: 'RFU'
+        }
+    }
