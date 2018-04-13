@@ -16,7 +16,8 @@ The main idea - write direct wrapper in Python for "libpcsclite.so" which used t
 
 ## How to use
 * $sudo apt install pcsc-tools
-* run pcsc deamon
+* $sudo apt install pcscd
+* $pcscd
 
 Example:
 
