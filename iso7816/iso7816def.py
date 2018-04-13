@@ -72,7 +72,7 @@ DSC_SW_ERROR = {
     0x6281: "Part of returned data may be corrupted",
     0x6282: "End of file/record reached before reading Le bytes",
     0x6283: "Selected file invalidated",
-    0x6284: "Selected file is not valid. FCI not formated according to ISO',
+    0x6284: "Selected file is not valid. FCI not formated according to ISO",
     0x6285: "No input data available from a sensor on the card. No Purse Engine enslaved for R3bc",
     0x62A2: "Wrong R-MAC",
     0x62A4: "Card locked (during reset( ))",

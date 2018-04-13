@@ -19,12 +19,14 @@ class Iso7816Exception(Exception):
     def __init__(self, msg='Iso7816 Exception'):
         self.msg = msg
 
+
 class ScardIORequest(ctypes.Structure):
     """
     This class need to compatibility to direct call function form "libpcslite: lib
     """
     _fields_ = [('dwProtocol', ctypes.c_long),
                 ('cbPciLength', ctypes.c_long)]
+
 
 class Iso7816():
 
@@ -132,8 +134,9 @@ class Iso7816():
 
         self.__check_rv(rv, self.get_readers.__name__)
 
-        # print "Available readres: {}".format(readers.value)
-        return readers.value
+        available_readers = filter(None, readers[:].split('\x00'))
+        
+        return available_readers
 
     def connect_to_reader(self,
                           reader=None,
@@ -180,8 +183,6 @@ class Iso7816():
 
         self.__check_rv(rv, self.get_atr.__name__)
 
-        # print "state reader: ", hex(state_reader.value & 0xFFFFFFFF)
-
         return list(struct.unpack('%dB' % atr_len.value, atr[:atr_len.value]))
 
     def __tx_rx_apdu(self, apdu, apdu_len):
@@ -225,6 +226,8 @@ class Iso7816():
         apdu = struct.pack('%dB' % apdu_len, *raw_apdu)
 
         sw = None
+        sw1 = None
+        sw2 = None
         sc_response = []
 
         while sw != 0x9000:
