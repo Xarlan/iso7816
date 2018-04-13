@@ -31,9 +31,9 @@ my_card.connect_to_reader(reader)
 
 print my_card.get_atr()
 
-rx, sw1, sw2 my_card.transmit('80 90 1B 13')
+rx, sw1, sw2 = my_card.transmit('80 90 1B 13')
 
 or
 
-rx, sw1, sw2 my_card.transmit([0x80, 0x90, 0x1B, 0x13])
+rx, sw1, sw2 = my_card.transmit([0x80, 0x90, 0x1B, 0x13])
 

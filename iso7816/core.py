@@ -135,7 +135,7 @@ class Iso7816():
         self.__check_rv(rv, self.get_readers.__name__)
 
         available_readers = filter(None, readers[:].split('\x00'))
-        
+
         return available_readers
 
     def connect_to_reader(self,
