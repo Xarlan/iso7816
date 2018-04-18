@@ -18,7 +18,8 @@ class Iso7816Exception(Exception):
 
     def __init__(self, msg='Iso7816 Exception', error=None):
         self.msg = msg
-        self.error = error & 0xFFFFFFFF
+        if error:
+            self.error = error & 0xFFFFFFFF
 
 
 class ScardIORequest(ctypes.Structure):
@@ -72,6 +73,10 @@ class Iso7816():
                 self.hwnd_reader = None
                 self.protocol = None
 
+                logging.basicConfig(format=u'[%(asctime)s]  %(message)s',
+                                    filename="iso7816.log",
+                                    level=logging.INFO)
+
     def __del__(self):
         rv = self.pcsc_lib.SCardDisconnect(self.hwnd_reader, iso7816def.SCARD_UNPOWER_CARD)
 
@@ -92,10 +97,12 @@ class Iso7816():
                 error_msg += iso7816def.DSC_ERROR[error_code]
 
             except KeyError:
-                raise Iso7816Exception(error_msg + "Unknown error code: {:X}".format(error_code))
+                logging.info("Unknown error code: {:X}".format(error_code))
+                raise Iso7816Exception(error_msg + "Unknown error code: {:X}".format(error_code), error_code)
 
             else:
-                raise Iso7816Exception(error_msg)
+                logging.info(error_msg + " error= {:X}".format(error_code))
+                raise Iso7816Exception(error_msg, error_code)
 
     def __check_sw(self, sw1, sw2):
         """
@@ -112,11 +119,12 @@ class Iso7816():
                 err_msg = '[' + iso7816def.DSC_SW_ERROR[sw] + ']'
 
             except KeyError:
-                raise Iso7816Exception("Unknown error code: {:X}".format(sw))
+                logging.info("Unknown sw1={:02X} sw2={:02X}".format(sw1, sw2))
+                raise Iso7816Exception("Unknown error code: {:X}".format(sw), sw)
 
             else:
-                # raise Iso7816Exception("[Error] {:X} ".format(sw) + err_msg)
-                raise Iso7816Exception(err_msg + " {:X} ".format(sw))
+                logging.info("sw1={:02X} sw2={:02X}".format(sw1, sw2))
+                raise Iso7816Exception(err_msg + " {:X} ".format(sw), sw)
 
     def get_readers(self):
         """
@@ -139,10 +147,10 @@ class Iso7816():
 
         return available_readers
 
-    def connect_to_reader(self,
-                          reader=None,
-                          mode=iso7816def.SCARD_SHARE_SHARED,
-                          protocol=iso7816def.SCARD_PROTOCOL_T0 | iso7816def.SCARD_PROTOCOL_T1):
+    def connect(self,
+                reader=None,
+                mode=iso7816def.SCARD_SHARE_SHARED,
+                protocol=iso7816def.SCARD_PROTOCOL_T0 | iso7816def.SCARD_PROTOCOL_T1):
         """
         Establishes a connection to the reader specified in "reader"
         :param reader:      name of reader which to connect
@@ -157,7 +165,7 @@ class Iso7816():
                                         ctypes.byref(self.__hwnd_reader),
                                         ctypes.byref(self.__protocol))
 
-        self.__check_rv(rv, self.connect_to_reader.__name__)
+        self.__check_rv(rv, self.connect.__name__)
 
         self.hwnd_reader = self.__hwnd_reader.value
         self.protocol = self.__protocol.value
@@ -184,7 +192,11 @@ class Iso7816():
 
         self.__check_rv(rv, self.get_atr.__name__)
 
-        return list(struct.unpack('%dB' % atr_len.value, atr[:atr_len.value]))
+        atr = list(struct.unpack('%dB' % atr_len.value, atr[:atr_len.value]))
+
+        logging.info("ATR: " + " ".join("{:02X}".format(i) for i in atr))
+
+        return atr
 
     def __tx_rx_apdu(self, apdu, apdu_len):
 
@@ -192,7 +204,7 @@ class Iso7816():
         pio_send_pci = ScardIORequest()
         pio_send_pci.dwProtocol = self.__protocol
 
-        apdu_rx = ctypes.create_string_buffer(200)
+        apdu_rx = ctypes.create_string_buffer(300)
         apdu_rx_len = ctypes.c_long(ctypes.sizeof(apdu_rx))
 
         rv = self.pcsc_lib.SCardTransmit(self.__hwnd_reader,
@@ -209,7 +221,7 @@ class Iso7816():
 
         return raw_apdu
 
-    def transmit(self, raw_apdu=None):
+    def transmit(self, raw_apdu=None, debug=False):
         """
         Transmit apdu to smart-card and receive answer
         :param raw_apdu:    may be string "90 AA BB..."
@@ -222,6 +234,8 @@ class Iso7816():
         if isinstance(raw_apdu, str):
             raw_apdu = raw_apdu.split(" ")
             raw_apdu = [int(x, 16) for x in raw_apdu]
+
+        logging.info("tx apdu: " + " ".join("{:02X}".format(i) for i in raw_apdu))
 
         apdu_len = len(raw_apdu)
         apdu = struct.pack('%dB' % apdu_len, *raw_apdu)
@@ -238,15 +252,25 @@ class Iso7816():
                 sw2 = raw_rx_apdu.pop()
                 sw1 = raw_rx_apdu.pop()
 
-                # if (sw1 != 0x90) or (sw1 != 0x61):
+                if debug:
+                    print "debug mode: sw1={:02X} sw2={:02X}".format(sw1, sw2)
+
                 self.__check_sw(sw1, sw2)
 
                 sw = (sw1 << 8) | sw2
                 sc_response.extend(raw_rx_apdu)
 
+                if sc_response:
+                    logging.info("rx apdu: " +
+                                 " ".join("{:02X}".format(i) for i in sc_response) +
+                                 " {:02X} {:02X}".format(sw1, sw2))
+                else:
+                    logging.info("rx apdu: " + "{:02X} {:02X}".format(sw1, sw2))
+
                 if sw1 == 0x61:
-                    apdu = [0x00, 0xC0, 0x00, 0x00, sw2]
+                    apdu = [0x00, 0xC0, 0x00, 0x00, sw2]                # ISO7816 cmd 'GET RESPONSE'
                     apdu_len = len(apdu)
+                    logging.info("tx apdu: " + " ".join("{:02X}".format(i) for i in apdu))
                     apdu = struct.pack('%dB' % apdu_len, *apdu)
             else:
                 raise Iso7816Exception("Wrong apdu")
