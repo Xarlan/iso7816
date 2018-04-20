@@ -278,10 +278,23 @@ class Iso7816():
         return sc_response, sw1, sw2
 
     def analyze_atr(self, raw_atr=None):
+        """
+        Analaze ATR and show description
+        :param raw_atr: string to analyze
+        :return: atr = {'TS': <val>,
+                        'T0': <val>,
+                        'TAi': <val>,
+                        'TBi': <val>,
+                        'TCi': <val>,
+                        'TDi': <val>,
+                        'hb' : <val>,
+                        'headeres': ['TS', 'T0', 'TA1', 'TB1', 'TC1', 'TD1', 'TA2', ...]
+                        }
+
+        """
 
         if raw_atr is None:
             raw_atr = self.get_atr()
-            # print "ATR: " + " ".join("{:02X}".format(i) for i in raw_atr) + '\n'
 
         if isinstance(raw_atr, str):
             raw_atr = raw_atr.split(" ")
@@ -296,17 +309,20 @@ class Iso7816():
 
 
         atr = {}
-        atr_header = []
+
+        atr['headres'] = []
         atr["TS"] = raw_atr[0]
-        atr_header.append('TS')
+
+        atr['headres'].append('TS')
         hist_bytes = raw_atr[1] & 0xF
 
         ptr = 1
         index = 1
 
         TDi = raw_atr[1]
+
         atr['T0'] = TDi
-        atr_header.append('T0')
+        atr['headres'].append('T0')
 
         while (ptr + hist_bytes) < atr_len:
 
@@ -314,36 +330,43 @@ class Iso7816():
             if TDi & 0x10:
                 ptr += 1
                 atr["TA%d" % index] = raw_atr[ptr]
-                atr_header.append('TA%d' % index)
+                atr['headres'].append('TA%d' % index)
 
             # TBi presence
             if TDi & 0x20:
                 ptr += 1
                 atr["TB%d" % index] = raw_atr[ptr]
-                atr_header.append('TB%d' % index)
+                atr['headres'].append('TB%d' % index)
 
             # TCi presence
             if TDi & 0x40:
                 ptr += 1
                 atr["TC%d" % index] = raw_atr[ptr]
-                atr_header.append('TC%d' % index)
+                atr['headres'].append('TC%d' % index)
 
             if TDi & 0x80:
                 ptr += 1
                 atr["TD%d" % index] = raw_atr[ptr]
-                atr_header.append('TD%d' % index)
+                atr['headres'].append('TD%d' % index)
 
                 index += 1
                 TDi = raw_atr[ptr]
             else:
                 break
 
-        atr['hb'] = raw_atr[ptr+1:ptr + hist_bytes+2]
-        atr_header.append('hb')
+        ptr += 1
 
-        print sorted(atr)
+        if atr.get('TD1'):
+            if (atr['TD1'] & 0xF) != 0:
+                atr['TCK'] = raw_atr.pop()
 
-        for header in atr_header:
+        atr['hb'] = raw_atr[ptr:ptr + hist_bytes]
+        atr['headres'].append('hb')
+
+        if atr.get('TCK'):
+            atr['headres'].append('TCK')
+
+        for header in atr['headres']:
 
             if header == 'TS':
                 print "TS  = {:>5X} -> {:}".format(atr['TS'], iso7816def.DSC_ATR['TS'][atr['TS']])
@@ -364,7 +387,15 @@ class Iso7816():
             elif header == 'TC1':
                 print "TC1 = {:>5X} -> Extra guard time".format(atr['TC1'])
 
-            elif header == 'hb':
-                print "Historical bytes: {}".format(" ".join('{:02X}'.format(i) for i in atr['hb']))
+            elif header == 'TD1':
+                print "TD1 = {:>5X} ->".format(atr['TD1'])
+                print "{:>16}T = {} - {}".format(' ', atr['TD1'] & 0xF, iso7816def.DSC_ATR['T'][atr['TD1'] & 0xF])
 
+            elif header == 'hb':
+                print "\nH Bytes: {}".format(" ".join('{:02X}'.format(i) for i in atr['hb']))
+
+            elif header == 'TCK':
+                print "TCK = {:>5X}".format(atr['TCK'])
+
+        print " "
         return atr

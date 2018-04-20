@@ -131,5 +131,26 @@ DSC_ATR = {
             0xD: 'RFU',
             0xE: 'RFU',
             0xF: 'RFU'
+        },
+
+        # transmission protocol
+        'T': {
+            0x0: 'The half-duplex transmission of characters',
+            0x1: 'The half-duplex transmission of blocks',
+            0x2: 'Reserved for future full-duplex operations',
+            0x3: 'Reserved for future full-duplex operations',
+            0x4: 'Reserved for an enhanced half-duplex transmission of characters',
+            0x5: 'Reserved for future use by ISO/IEC JTC 1/SC 17',
+            0x6: 'Reserved for future use by ISO/IEC JTC 1/SC 17',
+            0x7: 'Reserved for future use by ISO/IEC JTC 1/SC 17',
+            0x8: 'Reserved for future use by ISO/IEC JTC 1/SC 17',
+            0x9: 'Reserved for future use by ISO/IEC JTC 1/SC 17',
+            0xA: 'Reserved for future use by ISO/IEC JTC 1/SC 17',
+            0xB: 'Reserved for future use by ISO/IEC JTC 1/SC 17',
+            0xC: 'Reserved for future use by ISO/IEC JTC 1/SC 17',
+            0xD: 'Reserved for future use by ISO/IEC JTC 1/SC 17',
+            0xE: 'Transmission protocols not standardized by ISO/IEC JTC 1/SC 17',
+            0xF: 'Not refer to a transmission protocol, but only qualifies global interface bytes',
+
         }
     }
