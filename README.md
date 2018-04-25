@@ -1,6 +1,6 @@
 # iso7816
 
-This project is direct python-wrapper of the lib "libpcsclite.so". It allows to use card-reader whic connected throught USB and send/receive APDU data to communicate with smart-cards based on ISO7816.
+This project is direct python-wrapper of the lib "libpcsclite.so". It allows to use card-reader which connected throught USB and send/receive APDU data to communicate with smart-cards based on ISO7816.
 
 The capabilities:
 * get and analyze ATR
