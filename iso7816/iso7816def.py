@@ -154,3 +154,58 @@ DSC_ATR = {
 
         }
     }
+
+ATTRIB_SMART_CARD = {
+                        'ASYNC_PROTOCOL_TYPES':     0x30120,
+                        'ATR_STRING':               0x90303,
+                        'CHANNEL_ID':               0x20110,    # DWORD encoded as 0xDDDDCCCC,
+                                                                # where DDDD = data channel type and
+                                                                # CCCC = channel number
+                        'CHARACTERISTICS':          0x60150,    # indicating which mechanical characteristics are supported
+                        'CURRENT_BWT':              0x80209,    # Current block waiting time
+                        'CURRENT_CLK':              0x80202,    # Current clock rate, in kHz.
+                        'CURRENT_CWT':              0x8020A,    # Current character waiting time
+                        'CURRENT_D':                0x80204,    # Bit rate conversion factor
+                        'CURRENT_EBC_ENCODING':     0x8020B,    # Current error block control encoding
+                        'CURRENT_F':                0x80203,    # Clock conversion factor
+                        'CURRENT_IFSC':             0x80207,    # Current byte size for information field size card
+                        'CURRENT_IFSD':             0x80208,    # Current byte size for information field size device
+                        'CURRENT_IO_STATE':         0x90302,
+                        'CURRENT_N':                0x80205,    # Current guard time
+                        'CURRENT_PROTOCOL_TYPE':    0x80201,
+                        'CURRENT_W':                0x80206,    # Current work waiting time
+                        'DEFAULT_CLK':              0x30121,    # Default clock rate, in kHz
+                        'DEFAULT_DATA_RATE':        0x30123,    # Default data rate, in bps
+                        'DEVICE_FRIENDLY_NAME':     0x7FFF0003,
+                        'DEVICE_IN_USE':            0x7FFF0002,  # Reserved for future use
+                        'DEVICE_SYSTEM_NAME':       0x7FFF0004,  # Reader's system name
+                        'DEVICE_UNIT':              0x7FFF0001, # Instance of this vendor's reader
+                                                                # attached to the computer
+                        'ESC_AUTHREQUEST':          0x7A005,
+                        'ESC_CANCEL':               0x7A003,
+                        'ESC_RESET':                0x7A000,
+                        'EXTENDED_BWT':             0x8020C,
+                        'ICC_INTERFACE_STATUS':     0x90301,    # Zero if smart card electrical contact is not active;
+                                                                # nonzero if contact is active
+                        'ICC_PRESENCE':             0x90300,    # Single byte indicating smart card presence
+                        'ICC_TYPE_PER_ATR':         0x90304,    # Single byte indicating smart card type
+                        'MAX_CLK':                  0x30122,    # Maximum clock rate, in kHz
+                        'MAX_DATA_RATE':            0x30124,    # Maximum data rate, in bps
+                        'MAX_IFSD':                 0x30125,    # Maximum bytes for information file size device
+                        'MAXINPUT':                 0x7A007,
+                        'POWER_MGMT_SUPPORT':       0x40131,    # Zero if device does not support power down
+                                                                # while smart card is inserted
+                        'SUPRESS_T1_IFS_REQUEST':   0x7FFF0007,
+                        'SYNC_PROTOCOL_TYPES':      0x30126,
+                        'USER_AUTH_INPUT_DEVICE':   0x50142,
+                        'USER_TO_CARD_AUTH_DEVICE': 0x50140,
+                        'VENDOR_IFD_SERIAL_NO':     0x10103,    # Vendor-supplied interface device serial number
+                        'VENDOR_IFD_TYPE':          0x10101,    # Vendor-supplied interface device type
+                                                                # (model designation of reader)
+                        'VENDOR_IFD_VERSION':       0x10102,    # Vendor-supplied interface device version
+                                                                # DWORD in the form 0xMMmmbbbb where
+                                                                # MM = major version,
+                                                                # mm = minor version, and
+                                                                # bbbb = build number
+                        'VENDOR_NAME':              0x40131
+                    }

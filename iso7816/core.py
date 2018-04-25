@@ -399,3 +399,59 @@ class Iso7816():
 
         print " "
         return atr
+
+    def get_attrib(self, get_attrib=None):
+        """
+        Get an attribute from the IFD Handler
+        :param attrib: The 'name_attrib' or <value>
+                       if 'get_attrib' is None - return list of available attrib
+                       Not all the 'attrib' can be support
+        :return: list, which contain raw value of requested attrib
+                 or
+                 list of possible attributes
+        """
+
+        if get_attrib:
+            attr_len = ctypes.c_long()                                  # Length of the pbAttr buffer in bytes and
+                                                                        # receives the actual length of the received attribute
+
+            if isinstance(get_attrib, str):
+                rv = self.pcsc_lib.SCardGetAttrib(self.hwnd_reader,
+                                                  iso7816def.ATTRIB_SMART_CARD[get_attrib],
+                                                  None,
+                                                  ctypes.byref(attr_len))
+            elif isinstance(get_attrib, int):
+                rv = self.pcsc_lib.SCardGetAttrib(self.hwnd_reader,
+                                                  get_attrib,
+                                                  None,
+                                                  ctypes.byref(attr_len))
+
+            self.__check_rv(rv, self.get_attrib.__name__)
+
+            attrib = ctypes.create_string_buffer(attr_len.value)        # Pointer to a buffer that receives the attribute.
+                                                                        # If this value is NULL, SCardGetAttrib()
+                                                                        # ignores the buffer length supplied in pcbAttrLen,
+                                                                        # writes the length of the buffer
+                                                                        # that would have been returned
+                                                                        # if this parameter had not been NULL to pcbAttrLen,
+                                                                        # and returns a success code
+
+            if isinstance(get_attrib, str):
+                rv = self.pcsc_lib.SCardGetAttrib(self.hwnd_reader,
+                                                  iso7816def.ATTRIB_SMART_CARD[get_attrib],
+                                                  ctypes.byref(attrib),
+                                                  ctypes.byref(attr_len))
+            elif isinstance(get_attrib, int):
+                rv = self.pcsc_lib.SCardGetAttrib(self.hwnd_reader,
+                                                  get_attrib,
+                                                  ctypes.byref(attrib),
+                                                  ctypes.byref(attr_len))
+
+            self.__check_rv(rv, self.get_attrib.__name__)
+
+            raw_attrib = list(struct.unpack('%dB' % attr_len.value, attrib[:attr_len.value]))
+
+            return raw_attrib
+
+        else:
+            return sorted(iso7816def.ATTRIB_SMART_CARD.keys())
