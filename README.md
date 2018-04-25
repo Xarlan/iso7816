@@ -5,7 +5,7 @@ This project is direct python-wrapper of the lib "libpcsclite.so". It allows to 
 The capabilities:
 * get and analyze ATR
 * transmit APDU
-* get attributу of smart-card
+* get attributs of smart-card
 
 
 ## Keywords
