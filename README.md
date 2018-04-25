@@ -1,6 +1,12 @@
 # iso7816
 
-The main idea - write direct wrapper in Python for "libpcsclite.so" which used to communicate with smart-card.
+This project is direct python-wrapper of the lib "libpcsclite.so". It allows to use card-reader whic connected throught USB and send/receive APDU data to communicate with smart-cards based on ISO7816.
+
+The capabilities:
+* get and analyze ATR
+* transmit APDU
+* get attributу of smart-card
+
 
 ## Keywords
 * smart-card
@@ -21,19 +27,23 @@ The main idea - write direct wrapper in Python for "libpcsclite.so" which used t
 
 Example:
 
-import iso7816
+// connect card-reader to PC
 
-my_card = iso7816.Iso7816()
+// insert smart-card to card-reader
 
-reader = my_card.get_readers()
+    import iso7816
 
-my_card.connect_to_reader(reader)
+    my_card = iso7816.Iso7816()
 
-print my_card.get_atr()
+    reader = my_card.get_readers()  # get avaible readres
 
-rx, sw1, sw2 = my_card.transmit('80 90 1B 13')
+    my_card.connect(reader[0])      # connect to the first reader
+
+    print my_card.get_atr()         # get ATR (Answer To Reset)
+
+    rx, sw1, sw2 = my_card.transmit('80 90 1B 13') # send data '80 90 1B 13' to smart-card and get answer
 
 or
 
-rx, sw1, sw2 = my_card.transmit([0x80, 0x90, 0x1B, 0x13])
+    rx, sw1, sw2 = my_card.transmit([0x80, 0x90, 0x1B, 0x13]) # send data [0x80, 0x90, 0x1B, 0x13] to smart-card and get answer
 
