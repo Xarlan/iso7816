@@ -6,7 +6,8 @@ import ctypes
 import struct
 import logging
 
-import iso7816def
+from iso7816 import constants
+
 
 PCSC_LIB = "/lib/x86_64-linux-gnu/libpcsclite.so.1"
 
@@ -37,13 +38,13 @@ class Iso7816():
             self.pcsc_lib = ctypes.CDLL(path_to_lib)
 
         except OSError:
-            print "\nCan't find {}".format(path_to_lib)
+            print("\nCan't find {}".format(path_to_lib))
             exit(0)
 
         else:
             self.hwnd_app_context = ctypes.c_long()  # Application Context
 
-            rv = self.pcsc_lib.SCardEstablishContext(iso7816def.SCARD_SCOPE_SYSTEM,
+            rv = self.pcsc_lib.SCardEstablishContext(constants.SCARD_SCOPE_SYSTEM,
                                                      None,
                                                      None,
                                                      ctypes.byref(self.hwnd_app_context))
@@ -54,7 +55,7 @@ class Iso7816():
             if error_code:
                 try:
 
-                    error_msg += iso7816def.DSC_ERROR[error_code]
+                    error_msg += constants.DSC_ERROR[error_code]
 
                 except KeyError:
                     raise Iso7816Exception(error_msg + "Unknown error code: {:X}".format(error_code))
@@ -62,14 +63,15 @@ class Iso7816():
                 else:
                     raise Iso7816Exception(error_msg)
 
-
             else:
-                # '__hwnd_reader' and '__protocol' used to communicate to C-library
+                                                                # '__hwnd_reader' and '__protocol'
+                                                                # used to communicate to C-library
                 self.__hwnd_reader = ctypes.c_long()
-                self.__protocol = ctypes.c_long()  # Established protocol in connection
-                # Typical value: T0/T1/RAW
+                self.__protocol = ctypes.c_long()               # Established protocol in connection
+                                                                # Typical value: T0/T1/RAW
 
-                # 'hwnd_reader' and 'protocol' used to communicate in application in Python
+                                                                # 'hwnd_reader' and 'protocol'
+                                                                # used to communicate in application in Python
                 self.hwnd_reader = None
                 self.protocol = None
 
@@ -78,14 +80,14 @@ class Iso7816():
                                     level=logging.INFO)
 
     def __del__(self):
-        rv = self.pcsc_lib.SCardDisconnect(self.hwnd_reader, iso7816def.SCARD_UNPOWER_CARD)
+        rv = self.pcsc_lib.SCardDisconnect(self.hwnd_reader, constants.SCARD_UNPOWER_CARD)
 
 
     def __check_rv(self, rv, fun=" "):
         """
         Check value of "rv"
         :param rv:          returned value of PCSC library
-        :param fun:    "name of function, who call __check_rv
+        :param fun:         "name" of function, who call __check_rv
         :return: exception
         """
         error_code = rv & 0xFFFFFFFF
@@ -94,7 +96,7 @@ class Iso7816():
 
         if error_code:
             try:
-                error_msg += iso7816def.DSC_ERROR[error_code]
+                error_msg += constants.DSC_ERROR[error_code]
 
             except KeyError:
                 logging.info("Unknown error code: {:X}".format(error_code))
@@ -112,11 +114,11 @@ class Iso7816():
         :return:
         """
         sw = (sw1 << 8) | sw2
-        err_msg = ""
+        # err_msg = ""
 
         if (sw1 != 0x61) and (sw1 != 0x90):
             try:
-                err_msg = '[' + iso7816def.DSC_SW_ERROR[sw] + ']'
+                err_msg = '[' + constants.DSC_SW_ERROR[sw] + ']'
 
             except KeyError:
                 logging.info("Unknown sw1={:02X} sw2={:02X}".format(sw1, sw2))
@@ -143,14 +145,24 @@ class Iso7816():
 
         self.__check_rv(rv, self.get_readers.__name__)
 
-        available_readers = filter(None, readers[:].split('\x00'))
-
+        # available_readers = filter(None, readers[:].split('\x00'))
+        available_readers = list(filter(None, readers.raw.decode().split('\x00')))
         return available_readers
+        # print(list_reader)
+
+        # new_list = filter(None, readers.raw.decode().split('\x00'))
+        # print(new_list)
+        # print(readers.raw.decode())
+        # return available_readers
+        # return readers.raw.decode().split('\x00')
+        # return readers
+        # return list_reader
+
 
     def connect(self,
                 reader=None,
-                mode=iso7816def.SCARD_SHARE_SHARED,
-                protocol=iso7816def.SCARD_PROTOCOL_T0 | iso7816def.SCARD_PROTOCOL_T1):
+                mode=constants.SCARD_SHARE_SHARED,
+                protocol=constants.SCARD_PROTOCOL_T0 | constants.SCARD_PROTOCOL_T1):
         """
         Establishes a connection to the reader specified in "reader"
         :param reader:      name of reader which to connect
@@ -159,7 +171,7 @@ class Iso7816():
         :return:            Handle to this connection
         """
         rv = self.pcsc_lib.SCardConnect(self.hwnd_app_context,
-                                        reader,
+                                        reader.encode(),
                                         mode,
                                         protocol,
                                         ctypes.byref(self.__hwnd_reader),
@@ -179,7 +191,7 @@ class Iso7816():
 
         reader_len = ctypes.c_long()
         state_reader = ctypes.c_long()
-        atr = ctypes.create_string_buffer(iso7816def.MAX_ATR_SIZE)  # Current ATR of a card in this reade
+        atr = ctypes.create_string_buffer(constants.MAX_ATR_SIZE)   # Current ATR of a card in this reade
         atr_len = ctypes.c_long(ctypes.sizeof(atr))                 # Length of ATR
 
         rv = self.pcsc_lib.SCardStatus(self.__hwnd_reader,
@@ -253,7 +265,7 @@ class Iso7816():
                 sw1 = raw_rx_apdu.pop()
 
                 if debug:
-                    print "debug mode: sw1={:02X} sw2={:02X}".format(sw1, sw2)
+                    print ("debug mode: sw1={:02X} sw2={:02X}".format(sw1, sw2))
 
                 self.__check_sw(sw1, sw2)
 
@@ -300,7 +312,7 @@ class Iso7816():
             raw_atr = raw_atr.split(" ")
             raw_atr = [int(x, 16) for x in raw_atr]
 
-        print "Analyze ATR: " + " ".join("{:02X}".format(i) for i in raw_atr) + '\n'
+        print("Analyze ATR: " + " ".join("{:02X}".format(i) for i in raw_atr) + '\n')
 
         if (raw_atr[0] != 0x3B) and (raw_atr[0] != 0x3F):
             raise Iso7816Exception("This is not ATR")
@@ -369,35 +381,35 @@ class Iso7816():
         for header in atr['headres']:
 
             if header == 'TS':
-                print "TS  = {:>5X} -> {:}".format(atr['TS'], iso7816def.DSC_ATR['TS'][atr['TS']])
+                print("TS  = {:>5X} -> {:}".format(atr['TS'], constants.DSC_ATR['TS'][atr['TS']]))
 
             elif header == 'T0':
-                print "T0  = {:>5X}".format(atr['T0'])
+                print("T0  = {:>5X}".format(atr['T0']))
 
             elif header == 'TA1':
-                print "TA1 = {:>5X} ->".format(atr['TA1'])
-                print "{:>16}Fi = {}".format(' ', (iso7816def.DSC_ATR['FI'][(atr['TA1'] & 0xF0) >> 4]))
-                print "{:>16}Di = {}".format(' ', (iso7816def.DSC_ATR['DI'][atr['TA1'] & 0xF]))
+                print("TA1 = {:>5X} ->".format(atr['TA1']))
+                print("{:>16}Fi = {}".format(' ', (constants.DSC_ATR['FI'][(atr['TA1'] & 0xF0) >> 4])))
+                print("{:>16}Di = {}".format(' ', (constants.DSC_ATR['DI'][atr['TA1'] & 0xF])))
 
             elif header == 'TB1':
-                print "TB1 = {:>5X} ->".format(atr['TB1'])
-                print "{:>16}II = {}".format(' ', (atr['TB1'] & 0x60) >> 6)
-                print "{:>16}Pi = {}".format(' ', atr['TB1'] & 0x1F)
+                print("TB1 = {:>5X} ->".format(atr['TB1']))
+                print("{:>16}II = {}".format(' ', (atr['TB1'] & 0x60) >> 6))
+                print("{:>16}Pi = {}".format(' ', atr['TB1'] & 0x1F))
 
             elif header == 'TC1':
-                print "TC1 = {:>5X} -> Extra guard time".format(atr['TC1'])
+                print("TC1 = {:>5X} -> Extra guard time".format(atr['TC1']))
 
             elif header == 'TD1':
-                print "TD1 = {:>5X} ->".format(atr['TD1'])
-                print "{:>16}T = {} - {}".format(' ', atr['TD1'] & 0xF, iso7816def.DSC_ATR['T'][atr['TD1'] & 0xF])
+                print("TD1 = {:>5X} ->".format(atr['TD1']))
+                print("{:>16}T = {} - {}".format(' ', atr['TD1'] & 0xF, constants.DSC_ATR['T'][atr['TD1'] & 0xF]))
 
             elif header == 'hb':
-                print "\nH Bytes: {}".format(" ".join('{:02X}'.format(i) for i in atr['hb']))
+                print("\nH Bytes: {}".format(" ".join('{:02X}'.format(i) for i in atr['hb'])))
 
             elif header == 'TCK':
-                print "TCK = {:>5X}".format(atr['TCK'])
+                print("TCK = {:>5X}".format(atr['TCK']))
 
-        print " "
+        print(" ")
         return atr
 
     def get_attrib(self, get_attrib=None):
@@ -417,7 +429,7 @@ class Iso7816():
 
             if isinstance(get_attrib, str):
                 rv = self.pcsc_lib.SCardGetAttrib(self.hwnd_reader,
-                                                  iso7816def.ATTRIB_SMART_CARD[get_attrib],
+                                                  constants.ATTRIB_SMART_CARD[get_attrib],
                                                   None,
                                                   ctypes.byref(attr_len))
             elif isinstance(get_attrib, int):
@@ -438,7 +450,7 @@ class Iso7816():
 
             if isinstance(get_attrib, str):
                 rv = self.pcsc_lib.SCardGetAttrib(self.hwnd_reader,
-                                                  iso7816def.ATTRIB_SMART_CARD[get_attrib],
+                                                  constants.ATTRIB_SMART_CARD[get_attrib],
                                                   ctypes.byref(attrib),
                                                   ctypes.byref(attr_len))
             elif isinstance(get_attrib, int):
@@ -454,4 +466,4 @@ class Iso7816():
             return raw_attrib
 
         else:
-            return sorted(iso7816def.ATTRIB_SMART_CARD.keys())
+            return sorted(constants.ATTRIB_SMART_CARD.keys())

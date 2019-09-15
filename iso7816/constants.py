@@ -3,6 +3,9 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+# The description of errors gets from this site
+# https://pcsclite.apdu.fr/api/group__ErrorCodes.html
+
 MAX_ATR_SIZE            = 33                # Maximum ATR size
 
 SCARD_UNPOWER_CARD      = 0x0002            # Power down on close
@@ -82,9 +85,9 @@ DSC_SW_ERROR = {
     0x62F7: "Cardholder locked",
     0x62F8: "Basement is current agent",
     0x62F9: "CALC Key Set not unblocked",
-  
+
     0x6E00: "Class not supported"
-  
+
 }
 
 DSC_ATR = {
@@ -177,8 +180,8 @@ ATTRIB_SMART_CARD = {
                         'DEFAULT_CLK':              0x30121,    # Default clock rate, in kHz
                         'DEFAULT_DATA_RATE':        0x30123,    # Default data rate, in bps
                         'DEVICE_FRIENDLY_NAME':     0x7FFF0003,
-                        'DEVICE_IN_USE':            0x7FFF0002,  # Reserved for future use
-                        'DEVICE_SYSTEM_NAME':       0x7FFF0004,  # Reader's system name
+                        'DEVICE_IN_USE':            0x7FFF0002, # Reserved for future use
+                        'DEVICE_SYSTEM_NAME':       0x7FFF0004, # Reader's system name
                         'DEVICE_UNIT':              0x7FFF0001, # Instance of this vendor's reader
                                                                 # attached to the computer
                         'ESC_AUTHREQUEST':          0x7A005,
