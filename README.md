@@ -20,7 +20,7 @@ The capabilities:
 
 [pyResMan](https://github.com/JavaCardOS/pyResMan)
 
-## How to use
+## How to use cli
 * $sudo apt install pcsc-tools
 * $sudo apt install pcscd
 * $pcscd
@@ -46,4 +46,9 @@ Example:
 or
 
     rx, sw1, sw2 = my_card.transmit([0x80, 0x90, 0x1B, 0x13]) # send data [0x80, 0x90, 0x1B, 0x13] to smart-card and get answer
+
+## How to use gui
+
+run scgui.py
+![](gui.png)
 

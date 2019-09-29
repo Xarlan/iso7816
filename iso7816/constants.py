@@ -66,7 +66,8 @@ DSC_ERROR = {
     0x8010001F: "This smart card does not support the requested feature",
     0x8010002E: "Cannot find a smart card reader",
     0x80100066: "The smart card is not responding to a reset",
-    0x80100067: "Power has been removed from the smart card, so that further communication is not possible"
+    0x80100067: "Power has been removed from the smart card, so that further communication is not possible",
+    0x80100069: "The smart card has been removed, so further communication is not possible"
             }
 
 DSC_SW_ERROR = {
