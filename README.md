@@ -50,5 +50,6 @@ or
 ## How to use gui
 
 run scgui.py
+
 ![](gui.png)
 
